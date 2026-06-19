@@ -4,7 +4,7 @@
  * pencil-blue so the rabbit/platform cutouts stay nicely camouflaged.
  */
 class Raincode {
-    static CHARS = "0123456789".split("");
+    static CHARS = "01".split("");
     static FONT = "Gochi Hand"; // childlike handwriting (loaded in index.html)
 
     constructor() {
