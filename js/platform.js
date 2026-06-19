@@ -162,22 +162,38 @@ class Platform {
      * Value is the probability of spawn rate out of 10
      */
     static platformTypes = {
+        // Unique ids (values are arbitrary, only compared via these constants)
         STABLE: 5,
         MOVING: 2,
         FRAGILE: 3,
+        ICE: 4,
+        ELASTIC: 6,
         INVISIBLE: 0,
 
+        // Spawn weights per type id (relative probabilities)
+        WEIGHTS: {
+            5: 5, // STABLE
+            2: 2, // MOVING
+            3: 2, // FRAGILE
+            4: 2, // ICE
+            6: 1, // ELASTIC
+        },
+
         /**
-         * Get a random platform type
+         * Get a random platform type, weighted by WEIGHTS
          * @returns {Platform.platformTypes} platformType
          */
         getRandomType() {
-            const rand = Math.random() * 10;
-            return rand < this.STABLE
-                ? this.STABLE
-                : rand < this.STABLE + this.MOVING
-                ? this.MOVING
-                : this.FRAGILE;
+            const w = this.WEIGHTS;
+            const ids = Object.keys(w);
+            let total = 0;
+            ids.forEach((id) => (total += w[id]));
+            let r = Math.random() * total;
+            for (const id of ids) {
+                r -= w[id];
+                if (r < 0) return Number(id);
+            }
+            return this.STABLE;
         },
 
         /**
@@ -192,6 +208,10 @@ class Platform {
                     return color("#31b8d6");
                 case this.FRAGILE:
                     return color(255);
+                case this.ICE:
+                    return color("#9ad9ff");
+                case this.ELASTIC:
+                    return color("#46e07a");
                 default:
                     return null;
             }

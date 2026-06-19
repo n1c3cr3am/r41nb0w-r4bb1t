@@ -143,17 +143,27 @@ function draw() {
             doodler.vy > 0 &&
             checkCollision(doodler, plat)
         ) {
-            // Jump on the platform
-            doodler.vy = -Doodler.jumpForce;
-            doodler.land();
-            // Fragile platforms become invisible after jump
-            // Also loses spring
-            if (plat.type === Platform.platformTypes.FRAGILE) {
-                plat.type = Platform.platformTypes.INVISIBLE;
-                plat.springed = false;
-                playSound(sound.fragile);
+            if (plat.type === Platform.platformTypes.ELASTIC) {
+                // Elastic platforms always launch a super-jump
+                doodler.vy = -Doodler.superJumpForce;
+                doodler.spring();
+                playSound(sound.spring);
             } else {
-                playSound(sound.jump);
+                // Normal bounce
+                doodler.vy = -Doodler.jumpForce;
+                doodler.land();
+                if (plat.type === Platform.platformTypes.FRAGILE) {
+                    // Fragile platforms become invisible after jump (loses spring)
+                    plat.type = Platform.platformTypes.INVISIBLE;
+                    plat.springed = false;
+                    playSound(sound.fragile);
+                } else if (plat.type === Platform.platformTypes.ICE) {
+                    // Ice platforms send the doodler sliding
+                    doodler.iceBounce();
+                    playSound(sound.jump);
+                } else {
+                    playSound(sound.jump);
+                }
             }
         }
         // Update moving platforms and blackholes

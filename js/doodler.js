@@ -56,6 +56,21 @@ class Doodler {
         // Countdown timers for transient impact poses
         this.landFrames = 0;
         this.springFrames = 0;
+        // Residual horizontal slide from bouncing on ice (decays each frame)
+        this.drift = 0;
+    }
+
+    /** Slippery bounce: keep sliding in the current heading after an ice hit */
+    iceBounce() {
+        const dir =
+            this.vx > 0
+                ? 1
+                : this.vx < 0
+                ? -1
+                : this.direction === Doodler.Direction.RIGHT
+                ? 1
+                : -1;
+        this.drift = dir * Doodler.speed * 1.2;
     }
 
     /** Trigger the squash pose after a normal platform bounce */
@@ -115,8 +130,10 @@ class Doodler {
      * Update and move the doodler
      */
     update() {
-        // Horizontal move
-        this.x += this.vx;
+        // Horizontal move (player input + decaying ice drift)
+        this.x += this.vx + this.drift;
+        this.drift *= 0.95;
+        if (Math.abs(this.drift) < 0.05) this.drift = 0;
         // Ensure within screen
         if (this.x > width) {
             this.x = 0;
