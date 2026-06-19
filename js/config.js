@@ -20,6 +20,8 @@ const config = {
     INVADER_CHANCE: 0.04,
     // Max simultaneous invaders
     MAX_INVADERS: 2,
+    // Chance of spawning a power-up on platform recycle
+    POWERUP_CHANCE: 0.04,
     // Max falling speed
     MAX_FALLING_SPEED: 10,
 };

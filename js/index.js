@@ -11,6 +11,11 @@ var blackhole;
 var bullets = [];
 // Active space invaders
 var invaders = [];
+// Floating power-ups to collect
+var powerups = [];
+// Frames left of slow-motion (from a slow-mo power-up)
+var slowmoFrames = 0;
+var SLOWMO_FRAMES = 160;
 // Timestamp (ms) of the last shot, for cooldown
 var lastShot = 0;
 // Minimum delay between shots (ms)
@@ -128,6 +133,13 @@ function setup() {
  * Update method of main loop, calls FPS=100 times per second
  */
 function draw() {
+    // Slow-motion power-up bends the whole clock via the frame rate
+    if (slowmoFrames > 0) {
+        slowmoFrames--;
+        frameRate(config.FPS * 0.45);
+    } else {
+        frameRate(config.FPS);
+    }
     // Draw background
     drawBackground();
     // Render blackhole
@@ -210,11 +222,13 @@ function draw() {
             plat.update();
         }
     });
-    // Render invaders and bullets above the platforms
+    // Render invaders, bullets and power-ups above the platforms
     invaders.forEach((inv) => inv.render());
     bullets.forEach((b) => b.render());
+    powerups.forEach((pu) => pu.render());
     // Draw score
     drawScore();
+    drawHud();
     if (!isOver) {
         // Render the doodler
         if (doodler) {
@@ -240,16 +254,30 @@ function draw() {
             invaders = invaders.filter(
                 (inv) => !inv.dead && inv.y < height + 200
             );
-            // An invader touching the rabbit is fatal
+            // An invader touching the rabbit is fatal (unless shielded)
             for (const inv of invaders) {
                 if (inv.overlaps(doodler)) {
-                    isOver = true;
-                    doodler.vx = 0;
-                    doodler.vy = 0;
-                    playSound(sound.blackhole);
+                    if (doodler.shieldFrames > 0) {
+                        // Shield absorbs the hit and destroys the invader
+                        doodler.shieldFrames = 0;
+                        inv.dead = true;
+                    } else {
+                        isOver = true;
+                        doodler.vx = 0;
+                        doodler.vy = 0;
+                        playSound(sound.blackhole);
+                    }
                     break;
                 }
             }
+            // Collect power-ups
+            for (const pu of powerups) {
+                if (!pu.dead && pu.overlaps(doodler)) {
+                    pu.dead = true;
+                    applyPowerUp(pu.type);
+                }
+            }
+            powerups = powerups.filter((pu) => !pu.dead && pu.y < height + 200);
         }
         // check death from falling
         if (doodler && doodler.y >= height) {
@@ -264,13 +292,19 @@ function draw() {
             dist(doodler.x, doodler.y, blackhole.x, blackhole.y) <
                 Blackhole.ROCHE_LIMIT
         ) {
-            isOver = true;
-            doodler.vx = 0;
-            doodler.vy = 0;
-            doodler.x = blackhole.x;
-            doodler.y = blackhole.y;
-            isBlackholed = true;
-            playSound(sound.blackhole);
+            if (doodler.shieldFrames > 0) {
+                // Shield destroys the blackhole instead of dying
+                doodler.shieldFrames = 0;
+                blackhole = null;
+            } else {
+                isOver = true;
+                doodler.vx = 0;
+                doodler.vy = 0;
+                doodler.x = blackhole.x;
+                doodler.y = blackhole.y;
+                isBlackholed = true;
+                playSound(sound.blackhole);
+            }
         }
         // check blackhole out of bounds
         if (blackhole && blackhole.y > height) {
@@ -283,6 +317,7 @@ function draw() {
             blackhole && (blackhole.y -= doodler.vy);
             invaders.forEach((inv) => (inv.y -= doodler.vy));
             bullets.forEach((b) => (b.y -= doodler.vy));
+            powerups.forEach((pu) => (pu.y -= doodler.vy));
             updatePlatforms();
         }
     } else {
@@ -342,6 +377,12 @@ function updatePlatforms() {
                     Math.random() < config.INVADER_CHANCE
                 ) {
                     invaders.push(new Invader((x + width / 2) % width, y));
+                }
+                // Occasionally spawn a floating power-up above the platform
+                if (Math.random() < config.POWERUP_CHANCE) {
+                    powerups.push(
+                        new PowerUp(x, y - stepSize * 0.6, PowerUp.randomType())
+                    );
                 }
             } else {
                 // Fragile & Invisible just remove
@@ -413,6 +454,41 @@ function shoot() {
 function tryDoubleJump() {
     if (isOver || !doodler) return;
     if (doodler.doubleJump()) playSound(sound.jump);
+}
+
+/** Apply the effect of a collected power-up */
+function applyPowerUp(type) {
+    if (!doodler) return;
+    if (type === PowerUp.TYPES.SHIELD) {
+        doodler.shieldFrames = Doodler.SHIELD_FRAMES;
+    } else if (type === PowerUp.TYPES.BOOST) {
+        // Rainbow boost: a huge launch upward
+        doodler.vy = -Doodler.superJumpForce * 1.7;
+        doodler.spring();
+        doodler.canDoubleJump = true;
+    } else if (type === PowerUp.TYPES.SLOWMO) {
+        slowmoFrames = SLOWMO_FRAMES;
+    }
+    playSound(sound.spring);
+}
+
+/** Draw the active power-up indicators near the top-left */
+function drawHud() {
+    push();
+    textAlign(LEFT, TOP);
+    textStyle(NORMAL);
+    textSize(22);
+    fill(60);
+    noStroke();
+    let yy = 44;
+    if (doodler && doodler.shieldFrames > 0) {
+        text("🛡️ " + Math.ceil(doodler.shieldFrames / config.FPS) + "s", 10, yy);
+        yy += 28;
+    }
+    if (slowmoFrames > 0) {
+        text("🕶️ slow-mo", 10, yy);
+    }
+    pop();
 }
 
 /** Apply left/right movement from the current touch position */
@@ -567,6 +643,8 @@ function resetGame() {
     blackhole = null;
     bullets = [];
     invaders = [];
+    powerups = [];
+    slowmoFrames = 0;
     lastShot = 0;
     doodler = null;  // Clear doodler to prevent any lingering references
     

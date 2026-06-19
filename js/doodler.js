@@ -21,6 +21,9 @@ class Doodler {
     static ROCKET_FORCE = 13;
     static ROCKET_FRAMES = 42;
 
+    // Shield invincibility duration (frames)
+    static SHIELD_FRAMES = 360;
+
     // Visual size of the sprite relative to the collision box. The hitbox
     // (w/h) stays small/fair; only the drawing is enlarged, anchored at the
     // feet so the bigger rabbit still sits correctly on platforms.
@@ -68,6 +71,8 @@ class Doodler {
         this.shootFrames = 0;
         // One mid-air jump available, recharged on every platform bounce
         this.canDoubleJump = true;
+        // Frames left of shield invincibility (from a shield power-up)
+        this.shieldFrames = 0;
     }
 
     /** Show the shoot pose briefly after firing */
@@ -161,6 +166,19 @@ class Doodler {
         }
         image(img, left, top, dw, dh);
         pop();
+        // Shield bubble (drawn unflipped, around the rabbit)
+        if (this.shieldFrames > 0) {
+            push();
+            noFill();
+            // blink in the last ~0.7s before it runs out
+            const blink = this.shieldFrames > 50 || frameCount % 10 < 6;
+            if (blink) {
+                stroke(120, 200, 255, 190);
+                strokeWeight(4);
+                ellipse(this.x, this.y, dw * 0.95, dh * 0.95);
+            }
+            pop();
+        }
     }
 
     /**
@@ -197,5 +215,6 @@ class Doodler {
         if (this.landFrames > 0) this.landFrames--;
         if (this.springFrames > 0) this.springFrames--;
         if (this.shootFrames > 0) this.shootFrames--;
+        if (this.shieldFrames > 0) this.shieldFrames--;
     }
 }
