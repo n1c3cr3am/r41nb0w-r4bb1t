@@ -20,7 +20,7 @@ class Raincode {
             this.drops[i] = Math.random() * -40;
             this.speed[i] = 0.2 + Math.random() * 0.35;
         }
-        this.tail = 8;
+        this.tail = 32; // digits per falling sequence
     }
 
     /** Stable-ish digit per cell (head changes slowly, like rewriting) */
