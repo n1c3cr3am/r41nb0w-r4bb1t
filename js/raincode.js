@@ -35,6 +35,9 @@ class Raincode {
     /** Draw the digit rain over the already-painted paper background */
     render() {
         push();
+        // Pastel rainbow, like coloured pencils: a hue per column across the
+        // spectrum, soft (low saturation, high brightness)
+        colorMode(HSB, 360, 100, 100, 255);
         textFont(Raincode.FONT);
         textAlign(CENTER, CENTER);
         textSize(this.fs);
@@ -43,14 +46,15 @@ class Raincode {
         for (let i = 0; i < this.cols; i++) {
             const x = i * this.fs + this.fs / 2;
             const head = this.drops[i];
+            const hue = ((i / this.cols) * 360 + 15) % 360;
             for (let t = 0; t < this.tail; t++) {
                 const row = Math.floor(head) - t;
                 if (row < 0) continue;
                 const y = row * this.fs + this.fs / 2;
                 if (y > height) continue;
-                // soft pencil-blue ink, head a touch stronger, tail fading
-                const a = t === 0 ? 120 : map(t, 1, this.tail, 75, 0);
-                fill(70, 110, 175, a);
+                // head a touch stronger, tail fading
+                const a = t === 0 ? 150 : map(t, 1, this.tail, 95, 0);
+                fill(hue, 50, 85, a);
                 text(this.glyph(i, row, t === 0), x, y);
             }
             this.drops[i] += this.speed[i];
