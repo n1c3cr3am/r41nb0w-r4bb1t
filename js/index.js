@@ -479,7 +479,7 @@ function drawHud() {
     textAlign(LEFT, TOP);
     textStyle(NORMAL);
     textSize(22);
-    fill(225, 245, 230);
+    fill(60);
     noStroke();
     let yy = 44;
     if (doodler && doodler.shieldFrames > 0) {
@@ -677,11 +677,18 @@ function resetGame() {
  * Draw background grid and copyright info
  */
 function drawBackground() {
-    if (raincode) {
-        raincode.render();
-    } else {
-        background(Raincode.BG);
+    // School-paper background: cream sheet + squared grid
+    background("#f5eee4");
+    stroke(225, 125, 0);
+    strokeWeight(0.8);
+    for (let i = 0; i < height; i += cell) {
+        line(0, i, width, i);
     }
+    for (let i = 0; i < width; i += cell) {
+        line(i, 0, i, height);
+    }
+    // Overlay the falling digit rain on top of the paper
+    if (raincode) raincode.render();
 }
 
 /**
@@ -703,7 +710,7 @@ function drawScore() {
     }
     
     textAlign(LEFT);
-    fill(225, 245, 230);
+    fill(60);
     noStroke();
     text(scoreStr, scoreX, margin + fontSize);
     // draw copy right
@@ -761,7 +768,7 @@ function drawDead() {
         textAlign(CENTER);
         textStyle(BOLD);
         textSize(48);
-        fill(225, 245, 230);
+        fill(60);
         noStroke();
         text("GAME OVER!", width / 2, height / 2 - 60);
         

@@ -1,42 +1,41 @@
 /**
- * Elegant Matrix-style "raincode" background.
- * Columns of glyphs fall with a bright head and a fading green tail.
- * Drawn fresh each frame (the game repaints the whole canvas), so the trail
- * is rendered explicitly rather than relying on canvas persistence.
+ * Falling rain of digits in a childlike handwriting font, drawn as a soft
+ * overlay on top of the squared "school paper" background. Kept light and
+ * pencil-blue so the rabbit/platform cutouts stay nicely camouflaged.
  */
 class Raincode {
-    // Glyph set: katakana-ish marks, digits, and brand letters H / C
-    static CHARS = "アカサタナハマヤラ0123456789HＣ+=*<>".split("");
-    static BG = "#070b08"; // near-black base
+    static CHARS = "0123456789".split("");
+    static FONT = "Gochi Hand"; // childlike handwriting (loaded in index.html)
 
     constructor() {
         this.init();
     }
 
     init() {
-        this.fs = Math.max(13, Math.floor(width / 28));
+        this.fs = Math.max(16, Math.floor(width / 22));
         this.cols = Math.ceil(width / this.fs) + 1;
         this.drops = [];
         this.speed = [];
         for (let i = 0; i < this.cols; i++) {
-            this.drops[i] = Math.random() * -40; // start above screen, staggered
-            this.speed[i] = 0.25 + Math.random() * 0.4; // rows per frame
+            this.drops[i] = Math.random() * -40;
+            this.speed[i] = 0.2 + Math.random() * 0.35;
         }
-        this.tail = 14;
+        this.tail = 8;
     }
 
-    /** A stable-ish glyph for a given cell (head flickers a little) */
+    /** Stable-ish digit per cell (head changes slowly, like rewriting) */
     glyph(col, row, isHead) {
         const n = Raincode.CHARS.length;
         const seed = isHead
-            ? col * 31 + row * 17 + Math.floor(frameCount / 3)
-            : col * 31 + row * 17;
+            ? col * 7 + row * 13 + Math.floor(frameCount / 6)
+            : col * 7 + row * 13;
         return Raincode.CHARS[((seed % n) + n) % n];
     }
 
+    /** Draw the digit rain over the already-painted paper background */
     render() {
-        background(Raincode.BG);
         push();
+        textFont(Raincode.FONT);
         textAlign(CENTER, CENTER);
         textSize(this.fs);
         textStyle(NORMAL);
@@ -49,24 +48,18 @@ class Raincode {
                 if (row < 0) continue;
                 const y = row * this.fs + this.fs / 2;
                 if (y > height) continue;
-                if (t === 0) {
-                    fill(210, 255, 220, 230); // bright, slightly white head
-                } else {
-                    // soft green tail, fading out — kept dim for elegance
-                    const a = map(t, 1, this.tail, 120, 0);
-                    fill(70, 200, 110, a);
-                }
+                // soft pencil-blue ink, head a touch stronger, tail fading
+                const a = t === 0 ? 120 : map(t, 1, this.tail, 75, 0);
+                fill(70, 110, 175, a);
                 text(this.glyph(i, row, t === 0), x, y);
             }
-            // advance the column
             this.drops[i] += this.speed[i];
-            // recycle once fully off the bottom (staggered)
             if (
                 (Math.floor(this.drops[i]) - this.tail) * this.fs > height &&
                 Math.random() < 0.4
             ) {
                 this.drops[i] = Math.random() * -20;
-                this.speed[i] = 0.25 + Math.random() * 0.4;
+                this.speed[i] = 0.2 + Math.random() * 0.35;
             }
         }
         pop();
