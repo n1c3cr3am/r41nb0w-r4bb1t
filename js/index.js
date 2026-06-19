@@ -49,8 +49,8 @@ const BASE = Object.freeze({
     doodlerH: 80,
     platformW: 110,
     platformH: 28,
-    springW: 14,
-    springH: 14,
+    springW: 56,
+    springH: 56,
     GRAVITY: 0.16,
     MAX_FALLING_SPEED: 10,
 });

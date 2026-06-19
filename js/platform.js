@@ -4,9 +4,9 @@ class Platform {
     static h = 28;
     // Horizontal speed scalar
     static speed = 2;
-    // Spring dimensions
-    static springW = 14;
-    static springH = 14;
+    // Spring dimensions (4x larger so they read clearly on screen)
+    static springW = 56;
+    static springH = 56;
     // Image handle
     static springImage;
     // High's Club rainbow gradient stops (parsed/cached lazily in _rainbow)

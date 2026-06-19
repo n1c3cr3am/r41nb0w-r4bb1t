@@ -17,6 +17,13 @@ class Doodler {
     static LAND_FRAMES = 8;
     static SPRING_FRAMES = 14;
 
+    // Visual size of the sprite relative to the collision box. The hitbox
+    // (w/h) stays small/fair; only the drawing is enlarged, anchored at the
+    // feet so the bigger rabbit still sits correctly on platforms.
+    static DISPLAY_SCALE = 4;
+    // Vertical position of the feet within the normalised sprite (988/1024).
+    static FEET_RATIO = 0.9648;
+
     // Direction enum
     static Direction = {
         LEFT: 0,
@@ -87,19 +94,20 @@ class Doodler {
      */
     render() {
         const img = this.poseImage();
+        // Enlarge the drawing relative to the (smaller) collision box, anchored
+        // at the feet: the sprite's feet line sits on the collision-box bottom.
+        const dw = Doodler.w * Doodler.DISPLAY_SCALE;
+        const dh = Doodler.h * Doodler.DISPLAY_SCALE;
+        const footY = this.y + Doodler.h / 2;
+        const left = this.x - dw / 2;
+        const top = footY - Doodler.FEET_RATIO * dh;
         push();
         if (this.direction === Doodler.Direction.LEFT) {
             // Reflect around the vertical axis through this.x
             translate(2 * this.x, 0);
             scale(-1, 1);
         }
-        image(
-            img,
-            this.x - Doodler.w / 2,
-            this.y - Doodler.h / 2,
-            Doodler.w,
-            Doodler.h
-        );
+        image(img, left, top, dw, dh);
         pop();
     }
 
