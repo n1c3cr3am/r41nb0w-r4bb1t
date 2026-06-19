@@ -17,6 +17,10 @@ class Doodler {
     static LAND_FRAMES = 8;
     static SPRING_FRAMES = 14;
 
+    // Rocket boost: sustained upward velocity for a number of frames
+    static ROCKET_FORCE = 13;
+    static ROCKET_FRAMES = 42;
+
     // Visual size of the sprite relative to the collision box. The hitbox
     // (w/h) stays small/fair; only the drawing is enlarged, anchored at the
     // feet so the bigger rabbit still sits correctly on platforms.
@@ -58,6 +62,13 @@ class Doodler {
         this.springFrames = 0;
         // Residual horizontal slide from bouncing on ice (decays each frame)
         this.drift = 0;
+        // Frames left of a rocket boost (forced upward velocity)
+        this.rocketFrames = 0;
+    }
+
+    /** Engage a rocket boost: sustained upward velocity for ROCKET_FRAMES */
+    rocket() {
+        this.rocketFrames = Doodler.ROCKET_FRAMES;
     }
 
     /** Slippery bounce: keep sliding in the current heading after an ice hit */
@@ -91,6 +102,8 @@ class Doodler {
         let key;
         if (typeof isOver !== "undefined" && isOver) {
             key = "rabbit_ko";
+        } else if (this.rocketFrames > 0) {
+            key = "rabbit_up";
         } else if (this.springFrames > 0) {
             key = "rabbit_spring";
         } else if (this.landFrames > 0) {
@@ -141,10 +154,16 @@ class Doodler {
             this.x = width;
         }
         // Vertical move
-        // Falls faster
-        this.vy += this.vy < 0 ? config.GRAVITY : config.GRAVITY * 1.33;
-        if (this.vy > config.MAX_FALLING_SPEED)
-            this.vy = config.MAX_FALLING_SPEED;
+        if (this.rocketFrames > 0) {
+            // Rocket boost overrides gravity with a strong, steady climb
+            this.vy = -Doodler.ROCKET_FORCE;
+            this.rocketFrames--;
+        } else {
+            // Falls faster
+            this.vy += this.vy < 0 ? config.GRAVITY : config.GRAVITY * 1.33;
+            if (this.vy > config.MAX_FALLING_SPEED)
+                this.vy = config.MAX_FALLING_SPEED;
+        }
         this.y += this.vy;
         // Ensure below THRESHOLD=100
         if (this.y <= config.THRESHOLD) {

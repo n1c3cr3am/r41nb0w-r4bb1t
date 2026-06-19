@@ -51,55 +51,50 @@ class Platform {
     render() {
         // Do not draw invisible
         if (this.type === Platform.platformTypes.INVISIBLE) return;
-        // Fill middle rect
+        const T = Platform.platformTypes;
+        // Cloud is a soft puffy shape, so it skips the rounded-bar outline
+        const drawBar = this.type !== T.CLOUD;
+
+        // --- Body fill ---
         noStroke();
         rectMode(RADIUS);
-        if (this.type === Platform.platformTypes.STABLE) {
+        if (this.type === T.CLOUD) {
+            Platform.drawCloudBody(this.x, this.y, Platform.w, Platform.h);
+        } else if (this.type === T.STABLE) {
             // Stable platforms get the High's Club rainbow gradient
             Platform.drawRainbowBody(this.x, this.y, Platform.w, Platform.h);
+        } else if (this.type === T.DISCO) {
+            // Disco platforms cycle through hues over time
+            push();
+            colorMode(HSB, 360, 100, 100);
+            fill((frameCount * 5) % 360, 80, 95);
+            rect(this.x, this.y, Platform.w / 2, Platform.h / 2);
+            pop();
         } else {
-            // Moving / fragile keep a solid color so their type stays readable
-            fill(Platform.platformTypes.getColor(this.type));
+            fill(T.getColor(this.type));
             rect(this.x, this.y, Platform.w / 2, Platform.h / 2);
         }
-        // Draw rest
-        // Left semi circle
-        stroke(0);
-        strokeWeight(2);
-        arc(
-            this.x - Platform.w / 2,
-            this.y,
-            Platform.h,
-            Platform.h,
-            HALF_PI,
-            HALF_PI + PI,
-            OPEN
-        );
-        // Right semi circle
-        arc(
-            this.x + Platform.w / 2,
-            this.y,
-            Platform.h,
-            Platform.h,
-            HALF_PI + PI,
-            HALF_PI,
-            OPEN
-        );
 
-        // Draw top line
-        line(
-            this.x - Platform.w / 2,
-            this.y - Platform.h / 2,
-            this.x + Platform.w / 2,
-            this.y - Platform.h / 2
-        );
-        // Draw bottom line
-        line(
-            this.x - Platform.w / 2,
-            this.y + Platform.h / 2,
-            this.x + Platform.w / 2,
-            this.y + Platform.h / 2
-        );
+        // --- Rounded-bar outline (caps + edges) ---
+        if (drawBar) {
+            stroke(0);
+            strokeWeight(2);
+            // Left semi circle
+            arc(this.x - Platform.w / 2, this.y, Platform.h, Platform.h, HALF_PI, HALF_PI + PI, OPEN);
+            // Right semi circle
+            arc(this.x + Platform.w / 2, this.y, Platform.h, Platform.h, HALF_PI + PI, HALF_PI, OPEN);
+            // Top line
+            line(this.x - Platform.w / 2, this.y - Platform.h / 2, this.x + Platform.w / 2, this.y - Platform.h / 2);
+            // Bottom line
+            line(this.x - Platform.w / 2, this.y + Platform.h / 2, this.x + Platform.w / 2, this.y + Platform.h / 2);
+        }
+
+        // --- Type decorations ---
+        if (this.type === T.ROCKET) {
+            Platform.drawChevrons(this.x, this.y, Platform.h);
+        } else if (this.type === T.MUTATION) {
+            Platform.drawQuestion(this.x, this.y, Platform.h);
+        }
         // Draw spring if applicable
         if (this.springed) {
             image(
@@ -145,6 +140,47 @@ class Platform {
         pop();
     }
 
+    /** Draw a soft white cloud (overlapping puffs) for CLOUD platforms */
+    static drawCloudBody(x, y, w, h) {
+        push();
+        noStroke();
+        fill(255);
+        const ph = h * 1.5;
+        ellipse(x - w * 0.28, y, ph * 1.2, ph);
+        ellipse(x + w * 0.28, y, ph * 1.2, ph);
+        ellipse(x - w * 0.05, y - h * 0.5, ph * 1.3, ph * 1.3);
+        ellipse(x + w * 0.12, y - h * 0.35, ph * 1.1, ph * 1.1);
+        ellipse(x, y + h * 0.1, w * 1.0, ph);
+        pop();
+    }
+
+    /** Draw upward chevrons on ROCKET platforms (boost cue) */
+    static drawChevrons(x, y, h) {
+        push();
+        stroke(255);
+        strokeWeight(3);
+        noFill();
+        const s = h * 0.35;
+        for (let k = -1; k <= 1; k++) {
+            const cx = x + k * s * 1.8;
+            line(cx - s, y + s * 0.5, cx, y - s * 0.5);
+            line(cx, y - s * 0.5, cx + s, y + s * 0.5);
+        }
+        pop();
+    }
+
+    /** Draw a "?" on MUTATION platforms */
+    static drawQuestion(x, y, h) {
+        push();
+        fill(255);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textStyle(BOLD);
+        textSize(h * 1.1);
+        text("?", x, y - h * 0.05);
+        pop();
+    }
+
     /**
      * Update the moving platform
      * This method assumes the platform is moving
@@ -168,6 +204,10 @@ class Platform {
         FRAGILE: 3,
         ICE: 4,
         ELASTIC: 6,
+        CLOUD: 7,
+        ROCKET: 8,
+        DISCO: 9,
+        MUTATION: 10,
         INVISIBLE: 0,
 
         // Spawn weights per type id (relative probabilities)
@@ -177,6 +217,10 @@ class Platform {
             3: 2, // FRAGILE
             4: 2, // ICE
             6: 1, // ELASTIC
+            7: 1, // CLOUD
+            8: 1, // ROCKET
+            9: 1, // DISCO
+            10: 1, // MUTATION
         },
 
         /**
@@ -212,6 +256,10 @@ class Platform {
                     return color("#9ad9ff");
                 case this.ELASTIC:
                     return color("#46e07a");
+                case this.ROCKET:
+                    return color("#ff7a3d");
+                case this.MUTATION:
+                    return color("#a06cff");
                 default:
                     return null;
             }

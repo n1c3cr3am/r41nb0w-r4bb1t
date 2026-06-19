@@ -143,23 +143,46 @@ function draw() {
             doodler.vy > 0 &&
             checkCollision(doodler, plat)
         ) {
-            if (plat.type === Platform.platformTypes.ELASTIC) {
-                // Elastic platforms always launch a super-jump
+            const T = Platform.platformTypes;
+            let kind = plat.type;
+            // Mutation platforms randomly behave as boost / fragile / normal
+            if (kind === T.MUTATION) {
+                const r = Math.random();
+                kind = r < 1 / 3 ? T.ELASTIC : r < 2 / 3 ? T.FRAGILE : T.STABLE;
+            }
+
+            if (kind === T.ELASTIC) {
+                // Always launch a super-jump
                 doodler.vy = -Doodler.superJumpForce;
                 doodler.spring();
                 playSound(sound.spring);
+            } else if (kind === T.ROCKET) {
+                // Strap on a rocket: sustained upward boost
+                doodler.rocket();
+                playSound(sound.spring);
+            } else if (kind === T.CLOUD) {
+                // Soft cloud: bounce scales with incoming fall speed
+                const boost =
+                    Doodler.jumpForce + 0.7 * Math.min(doodler.vy, config.MAX_FALLING_SPEED);
+                doodler.vy = -Math.min(boost, Doodler.superJumpForce * 1.15);
+                doodler.land();
+                playSound(sound.jump);
             } else {
-                // Normal bounce
+                // Normal bounce family
                 doodler.vy = -Doodler.jumpForce;
                 doodler.land();
-                if (plat.type === Platform.platformTypes.FRAGILE) {
-                    // Fragile platforms become invisible after jump (loses spring)
-                    plat.type = Platform.platformTypes.INVISIBLE;
+                if (kind === T.FRAGILE) {
+                    // Fragile (and mutated-fragile) vanish after the jump
+                    plat.type = T.INVISIBLE;
                     plat.springed = false;
                     playSound(sound.fragile);
-                } else if (plat.type === Platform.platformTypes.ICE) {
-                    // Ice platforms send the doodler sliding
+                } else if (kind === T.ICE) {
+                    // Ice sends the doodler sliding
                     doodler.iceBounce();
+                    playSound(sound.jump);
+                } else if (plat.type === T.DISCO) {
+                    // Disco awards bonus points
+                    score += 200;
                     playSound(sound.jump);
                 } else {
                     playSound(sound.jump);
