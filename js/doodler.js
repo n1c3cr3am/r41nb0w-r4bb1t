@@ -1,7 +1,21 @@
 class Doodler {
-    // Image handle
-    static leftImage;
-    static rightImage;
+    // Animation poses (file name in assets/img, without extension)
+    static POSES = [
+        "rabbit_idle",
+        "rabbit_up",
+        "rabbit_fall",
+        "rabbit_lean",
+        "rabbit_land",
+        "rabbit_spring",
+        "rabbit_ko",
+        "rabbit_shoot",
+    ];
+    // pose name -> p5.Image (filled in preload)
+    static images = {};
+
+    // Frames the land (squash) / spring (stretch) poses stay on after impact
+    static LAND_FRAMES = 8;
+    static SPRING_FRAMES = 14;
 
     // Direction enum
     static Direction = {
@@ -32,22 +46,61 @@ class Doodler {
         this.vx = 0;
         this.vy = 0;
         this.direction = Doodler.Direction.RIGHT;
+        // Countdown timers for transient impact poses
+        this.landFrames = 0;
+        this.springFrames = 0;
+    }
+
+    /** Trigger the squash pose after a normal platform bounce */
+    land() {
+        this.landFrames = Doodler.LAND_FRAMES;
+    }
+
+    /** Trigger the stretch pose after a spring super-jump */
+    spring() {
+        this.springFrames = Doodler.SPRING_FRAMES;
     }
 
     /**
-     * Renders the doodler
+     * Pick the pose image for the current state.
+     * Priority: dead > spring > land > rising > falling.
+     */
+    poseImage() {
+        let key;
+        if (typeof isOver !== "undefined" && isOver) {
+            key = "rabbit_ko";
+        } else if (this.springFrames > 0) {
+            key = "rabbit_spring";
+        } else if (this.landFrames > 0) {
+            key = "rabbit_land";
+        } else if (this.vy < 0) {
+            key = "rabbit_up";
+        } else {
+            key = "rabbit_fall";
+        }
+        return Doodler.images[key] || Doodler.images["rabbit_idle"];
+    }
+
+    /**
+     * Renders the doodler. Sprites face right by default; when moving left we
+     * mirror horizontally around the doodler's x so it stays in place.
      */
     render() {
-        // Choose image according to the current direction
+        const img = this.poseImage();
+        push();
+        if (this.direction === Doodler.Direction.LEFT) {
+            // Reflect around the vertical axis through this.x
+            translate(2 * this.x, 0);
+            scale(-1, 1);
+        }
         image(
-            this.direction === Doodler.Direction.LEFT
-                ? Doodler.leftImage
-                : Doodler.rightImage,
+            img,
             this.x - Doodler.w / 2,
             this.y - Doodler.h / 2,
             Doodler.w,
             Doodler.h
         );
+        pop();
     }
 
     /**
@@ -72,5 +125,8 @@ class Doodler {
         if (this.y <= config.THRESHOLD) {
             this.y = config.THRESHOLD;
         }
+        // Tick down transient impact poses
+        if (this.landFrames > 0) this.landFrames--;
+        if (this.springFrames > 0) this.springFrames--;
     }
 }

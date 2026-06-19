@@ -69,8 +69,10 @@ function preload() {
     // because on iOS (WebKit) p5.sound's loadSound() can hang inside preload()
     // without ever firing a success or error callback, which blocks setup()
     // from running and leaves the player staring at a blank screen.
-    Doodler.leftImage = loadImage("./assets/img/doodler_left.png");
-    Doodler.rightImage = loadImage("./assets/img/doodler_right.png");
+    // Load every rabbit animation pose into Doodler.images
+    Doodler.POSES.forEach((p) => {
+        Doodler.images[p] = loadImage(`./assets/img/${p}.png`);
+    });
     Platform.springImage = loadImage("./assets/img/spring.png");
     Blackhole.blackholeImg = loadImage("./assets/img/hole.png");
 }
@@ -133,6 +135,7 @@ function draw() {
         ) {
             playSound(sound.spring);
             doodler.vy = -Doodler.superJumpForce;
+            doodler.spring();
         }
         // For non-invisible platforms : check collision with the falling doodler
         if (
@@ -142,6 +145,7 @@ function draw() {
         ) {
             // Jump on the platform
             doodler.vy = -Doodler.jumpForce;
+            doodler.land();
             // Fragile platforms become invisible after jump
             // Also loses spring
             if (plat.type === Platform.platformTypes.FRAGILE) {
