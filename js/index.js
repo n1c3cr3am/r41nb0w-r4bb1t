@@ -38,6 +38,8 @@ var stepSize;
 var isMobile;
 // Background grid cell size
 var cell;
+// Matrix raincode background
+var raincode;
 // Replay button
 var replayButton = {
     x: 0,
@@ -122,6 +124,7 @@ function setup() {
     frameRate(config.FPS);
     createCanvas(windowWidth, windowHeight);
     windowResized();
+    raincode = new Raincode();
     generatePlatforms();
     doodler = new Doodler(
         platforms[platforms.length - 2].x,
@@ -476,7 +479,7 @@ function drawHud() {
     textAlign(LEFT, TOP);
     textStyle(NORMAL);
     textSize(22);
-    fill(60);
+    fill(225, 245, 230);
     noStroke();
     let yy = 44;
     if (doodler && doodler.shieldFrames > 0) {
@@ -592,6 +595,7 @@ function windowResized() {
         resizeCanvas((windowHeight * 9) / 16, windowHeight);
     }
     cell = windowHeight / 30;
+    if (raincode) raincode.init();
 
     // Scale all size/physics values from the frozen BASE reference.
     // NOTE: this must always recompute from BASE (never *= in place). On iOS,
@@ -673,16 +677,10 @@ function resetGame() {
  * Draw background grid and copyright info
  */
 function drawBackground() {
-    background("#f5eee4");
-    stroke(225, 125, 0);
-    strokeWeight(0.8);
-    // horizontal lines
-    for (let i = 0; i < height; i += cell) {
-        line(0, i, width, i);
-    }
-    // vertical lines
-    for (let i = 0; i < width; i += cell) {
-        line(i, 0, i, height);
+    if (raincode) {
+        raincode.render();
+    } else {
+        background(Raincode.BG);
     }
 }
 
@@ -705,7 +703,7 @@ function drawScore() {
     }
     
     textAlign(LEFT);
-    fill(60);
+    fill(225, 245, 230);
     noStroke();
     text(scoreStr, scoreX, margin + fontSize);
     // draw copy right
@@ -763,7 +761,7 @@ function drawDead() {
         textAlign(CENTER);
         textStyle(BOLD);
         textSize(48);
-        fill(60);
+        fill(225, 245, 230);
         noStroke();
         text("GAME OVER!", width / 2, height / 2 - 60);
         
