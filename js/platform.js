@@ -9,6 +9,16 @@ class Platform {
     static springH = 14;
     // Image handle
     static springImage;
+    // High's Club rainbow gradient stops (parsed/cached lazily in _rainbow)
+    static RAINBOW_HEX = [
+        "#ff595e", // red
+        "#ff924c", // orange
+        "#ffca3a", // yellow
+        "#8ac926", // green
+        "#1982c4", // blue
+        "#6a4c93", // violet
+    ];
+    static _rainbow = null;
 
     /**
      * Construct with position and type
@@ -44,8 +54,14 @@ class Platform {
         // Fill middle rect
         noStroke();
         rectMode(RADIUS);
-        fill(Platform.platformTypes.getColor(this.type));
-        rect(this.x, this.y, Platform.w / 2, Platform.h / 2);
+        if (this.type === Platform.platformTypes.STABLE) {
+            // Stable platforms get the High's Club rainbow gradient
+            Platform.drawRainbowBody(this.x, this.y, Platform.w, Platform.h);
+        } else {
+            // Moving / fragile keep a solid color so their type stays readable
+            fill(Platform.platformTypes.getColor(this.type));
+            rect(this.x, this.y, Platform.w / 2, Platform.h / 2);
+        }
         // Draw rest
         // Left semi circle
         stroke(0);
@@ -95,6 +111,38 @@ class Platform {
                 Platform.springH * 2
             );
         }
+    }
+
+    /**
+     * Draw a horizontal rainbow gradient filling the rectangular body of a
+     * platform centred on (x, y). Colour stops are parsed once and cached,
+     * then interpolated with lerpColor across the width in small steps so it
+     * stays cheap enough to run every frame on mobile.
+     * @param {Number} x centre x
+     * @param {Number} y centre y
+     * @param {Number} w full width
+     * @param {Number} h full height
+     */
+    static drawRainbowBody(x, y, w, h) {
+        if (!Platform._rainbow) {
+            Platform._rainbow = Platform.RAINBOW_HEX.map((c) => color(c));
+        }
+        const stops = Platform._rainbow;
+        const segs = stops.length - 1;
+        const left = x - w / 2;
+        const top = y - h / 2;
+        const bottom = y + h / 2;
+        const step = 2;
+        push();
+        strokeWeight(step + 0.5);
+        strokeCap(SQUARE);
+        for (let i = 0; i <= w; i += step) {
+            const t = (i / w) * segs;
+            const idx = Math.min(Math.floor(t), segs - 1);
+            stroke(lerpColor(stops[idx], stops[idx + 1], t - idx));
+            line(left + i, top, left + i, bottom);
+        }
+        pop();
     }
 
     /**
