@@ -15,6 +15,10 @@ var invaders = [];
 var lastShot = 0;
 // Minimum delay between shots (ms)
 var SHOOT_COOLDOWN = 280;
+// Double-tap tracking (mobile double jump)
+var lastTapTime = 0;
+var lastTapX = 0;
+var lastTapY = 0;
 // Pause handle
 var paused = false;
 // Score
@@ -145,6 +149,7 @@ function draw() {
             playSound(sound.spring);
             doodler.vy = -Doodler.superJumpForce;
             doodler.spring();
+            doodler.canDoubleJump = true;
         }
         // For non-invisible platforms : check collision with the falling doodler
         if (
@@ -153,6 +158,8 @@ function draw() {
             checkCollision(doodler, plat)
         ) {
             const T = Platform.platformTypes;
+            // Any platform bounce recharges the mid-air double jump
+            doodler.canDoubleJump = true;
             let kind = plat.type;
             // Mutation platforms randomly behave as boost / fragile / normal
             if (kind === T.MUTATION) {
@@ -350,9 +357,14 @@ function updatePlatforms() {
  */
 function keyPressed() {
     if (isOver) return;
-    // SPACE or UP fires a bullet upward
-    if (keyCode === 32 || keyCode === UP_ARROW) {
+    // SPACE fires a bullet upward
+    if (keyCode === 32) {
         shoot();
+        return false;
+    }
+    // UP / W performs a mid-air double jump
+    if (keyCode === UP_ARROW || keyCode === 87) {
+        tryDoubleJump();
         return false;
     }
     if (
@@ -397,6 +409,23 @@ function shoot() {
     doodler.shoot();
 }
 
+/** Use a mid-air double jump if available */
+function tryDoubleJump() {
+    if (isOver || !doodler) return;
+    if (doodler.doubleJump()) playSound(sound.jump);
+}
+
+/** Apply left/right movement from the current touch position */
+function applyHorizontalTouch() {
+    if (mouseX < width / 2 && doodler.vx !== -Doodler.speed) {
+        doodler.vx = -Doodler.speed;
+        doodler.direction = Doodler.Direction.LEFT;
+    } else if (mouseX >= width / 2 && doodler.vx !== Doodler.speed) {
+        doodler.vx = Doodler.speed;
+        doodler.direction = Doodler.Direction.RIGHT;
+    }
+}
+
 /**
  * Touch event mobile
  */
@@ -405,20 +434,27 @@ function touchStarted() {
     if (event) {
         event.preventDefault();
     }
+    // Double-tap (two quick taps close together) = double jump
+    const now = millis();
+    if (
+        !isOver &&
+        now - lastTapTime < 280 &&
+        Math.abs(mouseX - lastTapX) < width * 0.3 &&
+        Math.abs(mouseY - lastTapY) < height * 0.3
+    ) {
+        lastTapTime = 0; // consume so a triple-tap doesn't double-fire
+        tryDoubleJump();
+        return false;
+    }
+    lastTapTime = now;
+    lastTapX = mouseX;
+    lastTapY = mouseY;
     // Tapping the top of the screen shoots upward instead of moving
     if (!isOver && mouseY < height * 0.25) {
         shoot();
         return false;
     }
-    // LEFT
-    if (mouseX < width / 2 && doodler.vx !== -Doodler.speed) {
-        doodler.vx = -Doodler.speed;
-        doodler.direction = Doodler.Direction.LEFT;
-    } else if (mouseX >= width / 2 && doodler.vx !== Doodler.speed) {
-        // RIGHT
-        doodler.vx = Doodler.speed;
-        doodler.direction = Doodler.Direction.RIGHT;
-    }
+    applyHorizontalTouch();
     // Return false to prevent default behavior
     return false;
 }
@@ -431,7 +467,7 @@ function touchMoved() {
     if (event) {
         event.preventDefault();
     }
-    touchStarted();
+    applyHorizontalTouch();
     // Return false to prevent default behavior
     return false;
 }

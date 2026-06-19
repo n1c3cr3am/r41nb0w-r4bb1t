@@ -66,11 +66,26 @@ class Doodler {
         this.rocketFrames = 0;
         // Frames the shoot pose stays on after firing
         this.shootFrames = 0;
+        // One mid-air jump available, recharged on every platform bounce
+        this.canDoubleJump = true;
     }
 
     /** Show the shoot pose briefly after firing */
     shoot() {
         this.shootFrames = 10;
+    }
+
+    /**
+     * Perform a mid-air double jump if one is available.
+     * @returns {Boolean} true if the jump was used
+     */
+    doubleJump() {
+        if (!this.canDoubleJump) return false;
+        this.canDoubleJump = false;
+        // Never slow an existing climb; give at least a fresh jump's worth up
+        this.vy = Math.min(this.vy, -Doodler.jumpForce);
+        this.spring(); // little stretch pose for feedback
+        return true;
     }
 
     /** Engage a rocket boost: sustained upward velocity for ROCKET_FRAMES */
