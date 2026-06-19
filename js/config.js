@@ -16,6 +16,10 @@ const config = {
     SPRINGED_CHANCE: 0.1,
     // Chance of blackhole
     BLACKHOLE_CHANCE: 1,
+    // Chance of spawning a space invader on platform recycle
+    INVADER_CHANCE: 0.04,
+    // Max simultaneous invaders
+    MAX_INVADERS: 2,
     // Max falling speed
     MAX_FALLING_SPEED: 10,
 };

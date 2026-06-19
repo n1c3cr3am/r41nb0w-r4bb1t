@@ -64,6 +64,13 @@ class Doodler {
         this.drift = 0;
         // Frames left of a rocket boost (forced upward velocity)
         this.rocketFrames = 0;
+        // Frames the shoot pose stays on after firing
+        this.shootFrames = 0;
+    }
+
+    /** Show the shoot pose briefly after firing */
+    shoot() {
+        this.shootFrames = 10;
     }
 
     /** Engage a rocket boost: sustained upward velocity for ROCKET_FRAMES */
@@ -102,6 +109,8 @@ class Doodler {
         let key;
         if (typeof isOver !== "undefined" && isOver) {
             key = "rabbit_ko";
+        } else if (this.shootFrames > 0) {
+            key = "rabbit_shoot";
         } else if (this.rocketFrames > 0) {
             key = "rabbit_up";
         } else if (this.springFrames > 0) {
@@ -172,5 +181,6 @@ class Doodler {
         // Tick down transient impact poses
         if (this.landFrames > 0) this.landFrames--;
         if (this.springFrames > 0) this.springFrames--;
+        if (this.shootFrames > 0) this.shootFrames--;
     }
 }

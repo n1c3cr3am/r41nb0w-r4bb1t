@@ -7,6 +7,14 @@ var platforms = [];
 var doodler;
 // Blackhole
 var blackhole;
+// Active bullets fired by the rabbit
+var bullets = [];
+// Active space invaders
+var invaders = [];
+// Timestamp (ms) of the last shot, for cooldown
+var lastShot = 0;
+// Minimum delay between shots (ms)
+var SHOOT_COOLDOWN = 280;
 // Pause handle
 var paused = false;
 // Score
@@ -75,6 +83,7 @@ function preload() {
     });
     Platform.springImage = loadImage("./assets/img/spring.png");
     Blackhole.blackholeImg = loadImage("./assets/img/hole.png");
+    Bullet.image = loadImage("./assets/img/bullet.png");
 }
 
 /**
@@ -194,6 +203,9 @@ function draw() {
             plat.update();
         }
     });
+    // Render invaders and bullets above the platforms
+    invaders.forEach((inv) => inv.render());
+    bullets.forEach((b) => b.render());
     // Draw score
     drawScore();
     if (!isOver) {
@@ -201,6 +213,36 @@ function draw() {
         if (doodler) {
             doodler.render();
             doodler.update();
+        }
+        // Update projectiles & enemies, resolve combat
+        if (doodler) {
+            bullets.forEach((b) => b.update());
+            invaders.forEach((inv) => inv.update());
+            // Bullets destroy invaders
+            bullets.forEach((b) => {
+                invaders.forEach((inv) => {
+                    if (!b.dead && !inv.dead && inv.hit(b.x, b.y)) {
+                        b.dead = true;
+                        inv.dead = true;
+                        score += 300;
+                    }
+                });
+            });
+            // Cull dead/off-screen
+            bullets = bullets.filter((b) => !b.dead);
+            invaders = invaders.filter(
+                (inv) => !inv.dead && inv.y < height + 200
+            );
+            // An invader touching the rabbit is fatal
+            for (const inv of invaders) {
+                if (inv.overlaps(doodler)) {
+                    isOver = true;
+                    doodler.vx = 0;
+                    doodler.vy = 0;
+                    playSound(sound.blackhole);
+                    break;
+                }
+            }
         }
         // check death from falling
         if (doodler && doodler.y >= height) {
@@ -232,6 +274,8 @@ function draw() {
             // If so, move blackhole and all other platforms down
             // opposite speed of doodler
             blackhole && (blackhole.y -= doodler.vy);
+            invaders.forEach((inv) => (inv.y -= doodler.vy));
+            bullets.forEach((b) => (b.y -= doodler.vy));
             updatePlatforms();
         }
     } else {
@@ -285,6 +329,13 @@ function updatePlatforms() {
                 ) {
                     blackhole = new Blackhole((x + width / 2) % width, y);
                 }
+                // Occasionally spawn a space invader near the top
+                if (
+                    invaders.length < config.MAX_INVADERS &&
+                    Math.random() < config.INVADER_CHANCE
+                ) {
+                    invaders.push(new Invader((x + width / 2) % width, y));
+                }
             } else {
                 // Fragile & Invisible just remove
                 platforms.splice(i, 1);
@@ -299,6 +350,11 @@ function updatePlatforms() {
  */
 function keyPressed() {
     if (isOver) return;
+    // SPACE or UP fires a bullet upward
+    if (keyCode === 32 || keyCode === UP_ARROW) {
+        shoot();
+        return false;
+    }
     if (
         (keyCode === LEFT_ARROW || keyCode === 65) &&
         doodler.vx !== -Doodler.speed
@@ -331,12 +387,28 @@ function keyReleased() {
 }
 
 /**
+ * Fire a bullet upward from the rabbit, respecting the cooldown.
+ */
+function shoot() {
+    if (isOver || !doodler) return;
+    if (millis() - lastShot < SHOOT_COOLDOWN) return;
+    lastShot = millis();
+    bullets.push(new Bullet(doodler.x, doodler.y - Doodler.h));
+    doodler.shoot();
+}
+
+/**
  * Touch event mobile
  */
 function touchStarted() {
     // Prevent default iOS behaviors like scrolling, zooming, etc.
     if (event) {
         event.preventDefault();
+    }
+    // Tapping the top of the screen shoots upward instead of moving
+    if (!isOver && mouseY < height * 0.25) {
+        shoot();
+        return false;
     }
     // LEFT
     if (mouseX < width / 2 && doodler.vx !== -Doodler.speed) {
@@ -457,6 +529,9 @@ function resetGame() {
     // Clear arrays and objects BEFORE resetting dimensions
     platforms = [];
     blackhole = null;
+    bullets = [];
+    invaders = [];
+    lastShot = 0;
     doodler = null;  // Clear doodler to prevent any lingering references
     
     // Reset score
