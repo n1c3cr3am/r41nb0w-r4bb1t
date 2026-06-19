@@ -2,8 +2,8 @@ class Platform {
     // Collision box dimensions
     static w = 110;
     static h = 28;
-    // Horizontal speed scalar
-    static speed = 2;
+    // Horizontal speed scalar (+50% game pace)
+    static speed = 3;
     // Spring dimensions (4x larger so they read clearly on screen)
     static springW = 56;
     static springH = 56;
@@ -186,8 +186,8 @@ class Platform {
      * This method assumes the platform is moving
      * Must check type before calling this function, for better performance
      */
-    update() {
-        this.x += this.vx;
+    update(factor = 1) {
+        this.x += this.vx * factor;
         if (this.x > width - Platform.w / 2 || this.x < Platform.w / 2) {
             this.vx *= -1;
         }

@@ -18,7 +18,7 @@ class Doodler {
     static SPRING_FRAMES = 14;
 
     // Rocket boost: sustained upward velocity for a number of frames
-    static ROCKET_FORCE = 13;
+    static ROCKET_FORCE = 19.5;
     static ROCKET_FRAMES = 42;
 
     // Shield invincibility duration (frames)

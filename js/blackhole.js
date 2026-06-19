@@ -1,7 +1,7 @@
 class Blackhole {
   static blackholeImg;
-  static w = 40;
-  static h = 40;
+  static w = 160;
+  static h = 160;
   // Minimum safe distance near blackhole
   static ROCHE_LIMIT = Blackhole.h * 0.75;
 

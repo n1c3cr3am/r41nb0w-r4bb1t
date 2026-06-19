@@ -1,8 +1,8 @@
 class Bullet {
     // Image handle (loaded in preload)
     static image;
-    // Upward speed in px/frame
-    static SPEED = 14;
+    // Upward speed in px/frame (+50% game pace)
+    static SPEED = 21;
     // Draw size
     static W = 34;
     static H = 34;

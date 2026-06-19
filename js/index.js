@@ -58,18 +58,21 @@ const sound = {
 // Frozen base values. windowResized() scales from these every time so that
 // repeated resize events (e.g. the iOS Safari URL bar collapsing) never
 // compound the scaling. See windowResized() for details.
+// Overall pace multiplier (+50% faster game). Applied to every velocity and
+// to gravity so jumps keep the same airtime but everything moves quicker.
+const GAME_SPEED = 1.5;
 const BASE = Object.freeze({
-    jumpForce: 8.15,
-    superJumpForce: 14,
-    speed: 7.2,
+    jumpForce: 8.15 * GAME_SPEED,
+    superJumpForce: 14 * GAME_SPEED,
+    speed: 7.2 * GAME_SPEED,
     doodlerW: 80,
     doodlerH: 80,
     platformW: 110,
     platformH: 28,
     springW: 56,
     springH: 56,
-    GRAVITY: 0.16,
-    MAX_FALLING_SPEED: 10,
+    GRAVITY: 0.16 * GAME_SPEED,
+    MAX_FALLING_SPEED: 10 * GAME_SPEED,
 });
 
 // Safely play a sound — iOS may fail to load audio, guard against null/errors
@@ -133,13 +136,8 @@ function setup() {
  * Update method of main loop, calls FPS=100 times per second
  */
 function draw() {
-    // Slow-motion power-up bends the whole clock via the frame rate
-    if (slowmoFrames > 0) {
-        slowmoFrames--;
-        frameRate(config.FPS * 0.45);
-    } else {
-        frameRate(config.FPS);
-    }
+    // Slow-motion power-up only slows the moving platforms (see plat.update)
+    if (slowmoFrames > 0) slowmoFrames--;
     // Draw background
     drawBackground();
     // Render blackhole
@@ -217,9 +215,9 @@ function draw() {
                 }
             }
         }
-        // Update moving platforms and blackholes
+        // Update moving platforms (slow-mo only slows these)
         if (plat.type === Platform.platformTypes.MOVING && !paused) {
-            plat.update();
+            plat.update(slowmoFrames > 0 ? 0.3 : 1);
         }
     });
     // Render invaders, bullets and power-ups above the platforms
