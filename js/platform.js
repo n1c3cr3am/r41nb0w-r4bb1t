@@ -2,8 +2,8 @@ class Platform {
     // Collision box dimensions
     static w = 110;
     static h = 28;
-    // Horizontal speed scalar (+50% game pace)
-    static speed = 3;
+    // Horizontal speed scalar (+50% game pace, x2 moving-platform effect)
+    static speed = 6;
     // Spring dimensions (4x larger so they read clearly on screen)
     static springW = 56;
     static springH = 56;

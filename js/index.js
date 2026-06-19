@@ -190,10 +190,10 @@ function draw() {
                 doodler.rocket();
                 playSound(sound.spring);
             } else if (kind === T.CLOUD) {
-                // Soft cloud: bounce scales with incoming fall speed
+                // Soft cloud: bounce scales with incoming fall speed (x2 effect)
                 const boost =
-                    Doodler.jumpForce + 0.7 * Math.min(doodler.vy, config.MAX_FALLING_SPEED);
-                doodler.vy = -Math.min(boost, Doodler.superJumpForce * 1.15);
+                    Doodler.jumpForce + 1.4 * Math.min(doodler.vy, config.MAX_FALLING_SPEED);
+                doodler.vy = -Math.min(boost, Doodler.superJumpForce * 1.3);
                 doodler.land();
                 playSound(sound.jump);
             } else {
@@ -210,8 +210,8 @@ function draw() {
                     doodler.iceBounce();
                     playSound(sound.jump);
                 } else if (plat.type === T.DISCO) {
-                    // Disco awards bonus points
-                    score += 200;
+                    // Disco awards bonus points (x2 effect)
+                    score += 400;
                     playSound(sound.jump);
                 } else {
                     playSound(sound.jump);

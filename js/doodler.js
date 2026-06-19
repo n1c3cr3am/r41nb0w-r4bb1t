@@ -108,7 +108,7 @@ class Doodler {
                 : this.direction === Doodler.Direction.RIGHT
                 ? 1
                 : -1;
-        this.drift = dir * Doodler.speed * 1.2;
+        this.drift = dir * Doodler.speed * 2.4;
     }
 
     /** Trigger the squash pose after a normal platform bounce */
