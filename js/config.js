@@ -12,8 +12,6 @@ const config = {
     THRESHOLD: 300,
     // Number of stairs per screen
     STEPS: 9,
-    // Chance of springed platform spawn rate
-    SPRINGED_CHANCE: 0.1,
     // Chance of blackhole
     BLACKHOLE_CHANCE: 1,
     // Chance of spawning a space invader on platform recycle

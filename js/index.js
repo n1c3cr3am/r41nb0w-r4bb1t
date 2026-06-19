@@ -71,8 +71,6 @@ const BASE = Object.freeze({
     doodlerH: 80,
     platformW: 110,
     platformH: 28,
-    springW: 56,
-    springH: 56,
     GRAVITY: 0.16 * GAME_SPEED,
     MAX_FALLING_SPEED: 10 * GAME_SPEED,
 });
@@ -95,8 +93,6 @@ function preload() {
     Doodler.POSES.forEach((p) => {
         Doodler.images[p] = loadImage(`./assets/img/${p}.png`);
     });
-    Platform.springImage = loadImage("./assets/img/spring.png");
-    Blackhole.blackholeImg = loadImage("./assets/img/hole.png");
     Bullet.image = loadImage("./assets/img/bullet.png");
 }
 
@@ -148,22 +144,6 @@ function draw() {
     // Draw all platforms
     platforms.forEach((plat) => {
         plat.render();
-        // For springs : check Collision with the falling doodler
-        if (
-            plat.springed &&
-            doodler.vy > 0 &&
-            checkCollision(doodler, {
-                x: plat.x + plat.springX,
-                y: plat.y + plat.springY,
-                w: Platform.springW,
-                h: Platform.springH,
-            })
-        ) {
-            playSound(sound.spring);
-            doodler.vy = -Doodler.superJumpForce;
-            doodler.spring();
-            doodler.canDoubleJump = true;
-        }
         // For non-invisible platforms : check collision with the falling doodler
         if (
             plat.type !== Platform.platformTypes.INVISIBLE &&
@@ -203,7 +183,6 @@ function draw() {
                 if (kind === T.FRAGILE) {
                     // Fragile (and mutated-fragile) vanish after the jump
                     plat.type = T.INVISIBLE;
-                    plat.springed = false;
                     playSound(sound.fragile);
                 } else if (kind === T.ICE) {
                     // Ice sends the doodler sliding
@@ -347,12 +326,10 @@ function updatePlatforms() {
                 let y = plat.y - (config.STEPS + 1) * stepSize;
                 // Random type
                 let type = Platform.platformTypes.getRandomType();
-                // Random springed
-                let springed = Math.random() < config.SPRINGED_CHANCE;
                 // Remove current
                 platforms.splice(i, 1);
                 // Add new
-                platforms.push(new Platform(x, y, type, springed));
+                platforms.push(new Platform(x, y, type));
                 // If got a fragile one, go add another stable one aside
                 // In case player have nowhere to go
                 if (type === Platform.platformTypes.FRAGILE) {
@@ -360,10 +337,8 @@ function updatePlatforms() {
                     x = (x + width / 3) % width;
                     // Stable type
                     type = Platform.platformTypes.STABLE;
-                    // Random springed
-                    springed = Math.random() < config.SPRINGED_CHANCE;
                     // add stable next to the fragile
-                    platforms.push(new Platform(x, y, type, springed));
+                    platforms.push(new Platform(x, y, type));
                 }
                 // for other types there's a chance to generate blackhole
                 else if (
@@ -614,7 +589,6 @@ function windowResized() {
         // Scale render heights
         Doodler.h = BASE.doodlerH * heightRatio;
         Platform.h = BASE.platformH * heightRatio;
-        Platform.springH = BASE.springH * heightRatio;
     }
     if (width > 0) {
         const REF_WIDTH = 725;
@@ -624,7 +598,6 @@ function windowResized() {
         // Scale render widths
         Doodler.w = BASE.doodlerW * widthRatio;
         Platform.w = BASE.platformW * widthRatio;
-        Platform.springW = BASE.springW * widthRatio;
     }
 }
 
@@ -748,8 +721,7 @@ function generatePlatforms() {
         while (type === Platform.platformTypes.FRAGILE) {
             type = Platform.platformTypes.getRandomType();
         }
-        const springed = Math.random() < config.SPRINGED_CHANCE;
-        platforms.push(new Platform(x, y, type, springed));
+        platforms.push(new Platform(x, y, type));
     }
 }
 

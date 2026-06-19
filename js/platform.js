@@ -4,11 +4,6 @@ class Platform {
     static h = 28;
     // Horizontal speed scalar (+50% game pace, x2 moving-platform effect)
     static speed = 6;
-    // Spring dimensions (4x larger so they read clearly on screen)
-    static springW = 56;
-    static springH = 56;
-    // Image handle
-    static springImage;
     // High's Club rainbow gradient stops (parsed/cached lazily in _rainbow)
     static RAINBOW_HEX = [
         "#ff595e", // red
@@ -26,23 +21,12 @@ class Platform {
      * @param {Number} x
      * @param {Number} y
      * @param {Platform.platformTypes} type
-     * @param {Boolean} springed
      */
-    constructor(x, y, type, springed) {
+    constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.vx = Platform.speed;
-        // Does the platform have a spring on it
-        this.springed = springed;
-        // Randomly initialize spring position : relative
-        if (springed) {
-            this.springX = (Math.random() - 0.5) * Platform.w * 0.8;
-            this.springY = -Platform.h / 2 - Platform.springH / 2;
-        } else {
-            this.springX = null;
-            this.springY = null;
-        }
     }
 
     /**
@@ -94,17 +78,6 @@ class Platform {
             Platform.drawChevrons(this.x, this.y, Platform.h);
         } else if (this.type === T.MUTATION) {
             Platform.drawQuestion(this.x, this.y, Platform.h);
-        }
-        // Draw spring if applicable
-        if (this.springed) {
-            image(
-                Platform.springImage,
-                // hard-coded offsets due to the source image being imcompliant
-                this.x + this.springX - Platform.springW / 2 - 11,
-                this.y + this.springY - Platform.springH / 2,
-                Platform.springW * 2.5,
-                Platform.springH * 2
-            );
         }
     }
 
