@@ -1,30 +1,81 @@
-# Infinite Jumper Template
-> A starting point written in Phaser 3 with modern JavaScript
+# CLICK [HERE](https://takosenpai2687.github.io/doodle-jump/) TO PLAY ONLINE
 
-![License](https://img.shields.io/badge/license-MIT-green)
+# Recent Update
 
-## Overview
+### 2026.01.14 Major Update: Upgraded dependencies and fixed iOS device support! Now fully compatible with iOS devices.
 
-This is the source code for an infinite jumper starting point in Phaser 3 as created by the free book: [Infinite Jumper in Phaser 3 with Modern JavaScript](https://ourcade.co/books/infinite-jumper-phaser3/).
+### 2022.10.5 Major Update: Fixed bugs for smaller screens. Now doodler behaves the same on all screens!
 
-This project uses no tooling and is intended for beginners to easily start developing games for the web.
+# Introduction
 
-## Getting Started
+_Doodle Jump_ (https://en.wikipedia.org/wiki/Doodle_Jump) is a platforming video game, popular on multiple platforms for many years. It was initially developed and published by American studio Lima Sky.
 
-The Infinite Jumper in Phaser 3 with Modern JavaScript book suggests using the Live Server extension for Visual Studio Code to launch a development server.
+This project is a Javascript replica of the video game _Doodle Jump_ mentioned above. The project is mainly developed using Javascript with the help of p5Js library. _See also https://p5js.org/_
 
-JavaScript files are included via the `<script type="module">` tag. A modern browser like Chrome is recommended.
+# How to Play
 
-## Modern JavaScript
+## For PC Users:
 
-This project uses modern/ES6 JavaScript syntax without transpilers like Babel.
+Press LEFT and RIGHT Arrow for movement control of the doodler.
 
-The source JavaScript files can be deployed and served to modern browsers without going through a bundling process.
+## For Mobile Users and PC Users:
 
-Bundling and minification may still be recommended for optimal delivery performance.
+Touch screen left part or right part to move the doodler.
 
-Deployment is not handled in this project.
+Jump on the platforms.
 
-## License
+Avoid Blackholes.
 
-[MIT License](https://github.com/ourcade/infinite-jumper-template-phaser3/blob/master/LICENSE)
+### Note that you can transport through the left and right screen and appear on the opposite side.
+
+### There are 3 types of platforms to note:
+
+    Green : Stable and safe platform.
+    Blue : Moving platform.
+    White : Fragile platform, vanish upon jumped on once.
+
+# How to Build
+
+1. Clone repository
+2. Open /index.html with VSCode
+3. Run with live server
+
+# Tech Specs
+
+HTML, CSS, Javascript
+
+canvas, P5Js Library
+
+# Known Issues
+
+Occasional minor bugs when window resized.
+
+# Updates
+
+### 2026.01.14 Major Update: Upgraded dependencies and fixed iOS device support! Now fully compatible with iOS devices.
+
+- Upgraded p5.js from v1.5.0 to v1.11.2
+- Upgraded p5.sound.js from v1.0.1 to v1.11.2
+- Added iOS audio context unlock mechanism with `userStartAudio()`
+- Enhanced iOS viewport meta tags for better mobile experience
+- Added iOS-specific CSS to prevent unwanted touch behaviors
+- Fixed touch event handlers with proper iOS event prevention
+- Removed iOS limitation notice from documentation
+
+### 2022.10.5 Major Update: Fixed bugs for smaller screens. Now doodler behaves the same on all screens!
+
+### 2020.06.29 Smoothened mobile experience by supporting touch moving. Optimized random platform generating distance. Made player falling speed faster than jumping up.
+
+### 2020.06.24 Added mobile devices full screen and touch event support. Minor bug fixes.
+
+### 2020.06.24 Project launched
+
+# Developer
+
+takosenpai2687
+
+# Credits
+
+All sound files from https://www.sounds-resource.com/mobile/doodlejump/sound/1636/
+
+All art assets from random web search
